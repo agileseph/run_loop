@@ -223,7 +223,11 @@ module RunLoop
             Open3.popen3(cmd) do |_, stdout, stderr, _|
               stderr_filter.call(stderr)
               devices = stdout.read.chomp.split("\n")
-              devices.select { |device| device.downcase.include?('simulator') }
+              devices.select do |device|
+                device.downcase.include?('simulator') ||
+                device.downcase.include?('ipad') ||
+                device.downcase.include?('iphone')
+              end
             end
           }.call
 

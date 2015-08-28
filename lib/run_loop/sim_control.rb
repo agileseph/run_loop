@@ -587,6 +587,11 @@ module RunLoop
     # A regex for finding directories under ~/Library/Developer/CoreSimulator/Devices
     # and parsing the output of `simctl list sessions`.
     XCODE_6_SIM_UDID_REGEX = /[A-F0-9]{8}-([A-F0-9]{4}-){3}[A-F0-9]{12}/.freeze
+    XCODE_6_SIM_LAUNCH_NAME_REGEX = /\A.+\((\d\.\d(\.\d)? Simulator\))/.freeze
+    XCODE_6_SIM_SDK_REGEX = /(\d\.\d(\.\d)? Simulator)/.freeze
+
+    XCODE_7_SIM_LAUNCH_NAME_REGEX = /\A.+\((\d\.\d(\.\d)?\))/.freeze
+    XCODE_7_SIM_SDK_REGEX = /(\d\.\d(\.\d)?)/.freeze
 
     CORE_SIMULATOR_KEYBOARD_PROPERTIES_HASH =
           {
@@ -1015,9 +1020,16 @@ module RunLoop
 
       hash = {}
       xctools.instruments(:sims).each do |elm|
-        launch_name = elm[/\A.+\((\d\.\d(\.\d)? Simulator\))/, 0]
-        udid = elm[XCODE_6_SIM_UDID_REGEX,0]
-        sdk_version = elm[/(\d\.\d(\.\d)? Simulator)/, 0].split(' ').first
+        if xcode_version_gte_7?
+          launch_name = elm[XCODE_7_SIM_LAUNCH_NAME_REGEX, 0]
+          udid = elm[XCODE_6_SIM_UDID_REGEX,0]
+          sdk_version = elm[XCODE_7_SIM_SDK_REGEX, 0].split(' ').first
+        else
+          launch_name = elm[XCODE_6_SIM_LAUNCH_NAME_REGEX, 0]
+          udid = elm[XCODE_6_SIM_UDID_REGEX,0]
+          sdk_version = elm[XCODE_6_SIM_SDK_REGEX, 0].split(' ').first
+        end
+
         value =
               {
                     :launch_name => launch_name,
